@@ -1,0 +1,99 @@
+#formulario-editar-perfil {
+  margin: auto;
+  height: 70%;
+  max-height: 90%;
+  flex: 0.8;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.container-form-foto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#formulario-editar-perfil .container-dato {
+  display: flex;
+  flex-direction: column;
+}
+.container-form-foto label {
+  width: max-content;
+}
+
+#profileImage {
+  width: 50%;
+}
+.input-editar-perfil {
+  background-color: #b1b1b1b0;
+  width: 60%;
+  border: none;
+
+}
+.container-editor-emojis{
+  display: flex;
+}
+.container-editor-emojis div{
+  margin: 0 20px;
+}
+.cambiar-emojis-btn {
+  border: solid rgb(117, 117, 117) 1px;
+  border-radius: 5px;
+  width: max-content;
+}
+
+.guardar-cambios-btn {
+  background-color: #ff7926;
+  width: 80%;
+  color: white;
+  border: none;
+  margin: 0 auto;
+  font-size: 1.2rem;
+}
+.guardar-cambios-btn:hover {
+  background-color: orangered;
+}
+.emojis-table{
+  display: grid;
+  grid-template-columns: repeat(12,1fr);
+  grid-template-rows: repeat(7,1fr);
+  height: 60%;
+  width: 80%;
+}
+.emojis-table .emoji{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+.emojis-table .emoji:hover{
+  background-color: rgba(212, 189, 159, 0.596);
+}
+.container-emojis-seleccionados{
+  border-top: solid orange 2px;
+  width: 70%;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  margin: 2%;
+}
+.container-emojis-seleccionados button{
+  height: max-content;
+  display: flex;
+  align-items: center;
+  border: none;
+}
+.container-btns-emojis button{
+  background-color: #FF7F29;
+  color:white;
+  border-radius: 5px;
+  border:none;
+  padding: 5px 10px;
+}
+.emojis-seleccionados{
+  font-size: 2rem;
+}
+
+.titulo-emojis{
+  color: orangered;
+}

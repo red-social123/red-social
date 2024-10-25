@@ -1,0 +1,21 @@
+.tarjeta-homepage{
+    height: 80% !important;
+    width: 25% !important;
+    color: white !important;
+    overflow: hidden;
+    border: none !important;
+}
+.tarjeta-homepage img{
+    object-fit: cover;
+    max-height: 37%;
+}
+.tarjeta-homepage .card-body{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+.tarjeta-homepage .card-title{
+    font-size: 2.6rem;
+    text-align: center;
+}
