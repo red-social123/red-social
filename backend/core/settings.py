@@ -1,29 +1,52 @@
+from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
 import cloudinary
+import environ
+import dj_database_url
+from urllib.parse import urlparse
 
-load_dotenv()  # cargar el .env para poder usar las variables de entorno
-# IMPORTANTE: EL .env DEBE ESTAR EN LA RAIZ DEL PROYECTO RUTA "backend/core/.env"
+from os import getenv
+from dotenv import load_dotenv
 
-from datetime import timedelta
 
-from pathlib import Path
+# Cargar el .env para poder usar las variables de entorno
+load_dotenv()  # IMPORTANTE: EL .env DEBE ESTAR EN LA RAIZ DEL PROYECTO RUTA "backend/core/.env"
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Configuración de entorno
+env = environ.Env()
+environ.Env.read_env()
+
+# Construir rutas dentro del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
+# Configuración rápida de desarrollo
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k(d=ov2cc%x*453*98e8inj3u0j3mfdcmellkx2(1v*540_9$&'
+# SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = "RENDER" not in os.environ
 
-ALLOWED_HOSTS = []
+
+# Configuración de ALLOWED_HOSTS
+if DEBUG:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*"]  # Permitir todos los hosts en desarrollo
+else:
+    ALLOWED_HOSTS = env("ALLOWED_HOSTS_DEPLOY", default="").split(",")  # Obtener de .env o vacío por defecto
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+
+
+
+
+# ----------------------DB NEON CONSOLE
+# Replace the DATABASES section of your settings.py with this
+tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
+
 
 
 # Application definition
@@ -62,6 +85,7 @@ INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -99,32 +123,73 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # -------DB SQL-LITE------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# ------DB SQL SERVER-------
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'mssql',
-#         'NAME': 'DB-NOCOUNTRY',  # El nombre de tu base de datos
-#         'USER': '***',  # Deja en blanco si usas autenticación de Windows
-#         'PASSWORD': '***',  # Deja en blanco si usas autenticación de Windows
-#         'HOST': '***',  # El nombre de tu servidor
-#         'PORT': '',  # El puerto por defecto de SQL Server
-#         'OPTIONS': {
-#             'driver': 'ODBC Driver 17 for SQL Server',  # Cambia el driver a la versión
-#             'trusted_connection': 'yes',  # Autenticación de Windows
-#             'TrustServerCertificate': 'yes',  # Confía en el certificado del servidor
-#             'Encrypt': 'False',  # Desactiva la encriptación SSL
-#         },
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
 
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": os.getenv("DB_NAME"),
+#         "USER": os.getenv("DB_USER"),
+#         "PASSWORD": os.getenv("DB_PASSWORD"),
+#         "HOST": os.getenv("DB_HOST"),
+#         "PORT": os.getenv("DB_PORT"),
+#     }
+# }
+
+# -----DB NEON
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': tmpPostgres.path.replace('/', ''),
+        'USER': tmpPostgres.username,
+        'PASSWORD': tmpPostgres.password,
+        'HOST': tmpPostgres.hostname,
+        'PORT': 5432,
+    }
+}
+
+
+
+
+DATABASES["default"]["ATOMIC_REQUESTS"] = True
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+]
+
+if not DEBUG:
+    CORS_ORIGIN_WHITELIST = [
+        'https://123.com',
+        'https://admin.123.com',
+        'https://blog.123.com',
+    ]
+
+    CSRF_TRUSTED_ORIGINS = [
+        'hhttps://solopython.com',
+        'https://admin.123.com',
+        'https://blog.123.com',
+    ]
+
+
+# Password validation
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -161,6 +226,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -224,3 +294,25 @@ CLOUDINARY_STORAGE = {
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3001',
+    'http://localhost:3000',
+]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3001',
+    'http://localhost:3000',
+]
+
+if not DEBUG:
+    ALLOWED_HOSTS=env.list('ALLOWED_HOSTS_DEPLOY')
+    CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST_DEPLOY')
+    CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS_DEPLOY')
+
+
+    DATABASES = {
+        "default": env.db("DATABASE_URL"),
+    }
+    DATABASES["default"]["ATOMIC_REQUESTS"] = True
